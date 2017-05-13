@@ -1,5 +1,10 @@
 package simpSpread;
 
+import simpSpread.Token.OperatorToken;
+import simpSpread.Token.ReferenceToken;
+import simpSpread.Token.Token;
+import simpSpread.Token.ValueToken;
+
 /**
  * Factory for getting appropriate Token from a given token String based on Factory Design Pattern
  *

@@ -1,7 +1,10 @@
 package simpSpread;
 
 import org.junit.Test;
+import simpSpread.Exception.Exception;
+import simpSpread.Exception.FileNotFound;
 
+import java.io.InputStream;
 import java.util.Scanner;
 
 import static org.junit.Assert.*;
@@ -16,15 +19,13 @@ public class SpreadsheetTest
     public void testConstruct() throws Exception
     {
         Spreadsheet spreadsheet = new Spreadsheet(
-            mock(WorkBook.class),
-            mock(InputScanner.class)
+            mock(WorkBook.class)
         );
 
         assertNotNull(spreadsheet);
 
         Spreadsheet spreadsheetPrettyPrint = new Spreadsheet(
             mock(WorkBook.class),
-            mock(InputScanner.class),
             true
         );
 
@@ -40,17 +41,9 @@ public class SpreadsheetTest
         WorkBook notCircular = mock(WorkBook.class);
         when(notCircular.isCircularDependent()).thenReturn(false);
 
-        assertTrue((new Spreadsheet(circular, mock(InputScanner.class))).isWorkBookCircular());
+        assertTrue((new Spreadsheet(circular)).isWorkBookCircular());
 
-        assertFalse((new Spreadsheet(notCircular, mock(InputScanner.class))).isWorkBookCircular());
-    }
-
-    @Test
-    public void setInputScanner() throws Exception
-    {
-        Spreadsheet spreadsheet = new Spreadsheet(mock(WorkBook.class), mock(InputScanner.class));
-
-        spreadsheet.setInputScanner(mock(InputScanner.class));
+        assertFalse((new Spreadsheet(notCircular)).isWorkBookCircular());
     }
 
     @Test
@@ -58,7 +51,6 @@ public class SpreadsheetTest
     {
         Spreadsheet spreadsheetPrettyPrint = new Spreadsheet(
             mock(WorkBook.class),
-            mock(InputScanner.class),
             true
         );
 
@@ -66,7 +58,6 @@ public class SpreadsheetTest
 
         Spreadsheet spreadsheetNotPrettyPrint = new Spreadsheet(
             mock(WorkBook.class),
-            mock(InputScanner.class),
             false
         );
 
@@ -78,23 +69,20 @@ public class SpreadsheetTest
     public void processWorkbook() throws Exception
     {
         WorkBook workBook = mock(WorkBook.class);
-        InputScanner scanner = mock(InputScanner.class);
 
-        Spreadsheet spreadsheet = new Spreadsheet(workBook, scanner);
+        Spreadsheet spreadsheet = new Spreadsheet(workBook);
 
         spreadsheet.processWorkbook();
 
-        verify(workBook, times(1)).readInput(scanner);
-        verify(scanner, times(1)).close();
+        verify(workBook, times(1)).readInput();
     }
 
     @Test
     public void evaluate() throws Exception
     {
         WorkBook workBook = mock(WorkBook.class);
-        InputScanner scanner = mock(InputScanner.class);
 
-        Spreadsheet spreadsheet = new Spreadsheet(workBook, scanner);
+        Spreadsheet spreadsheet = new Spreadsheet(workBook);
 
         spreadsheet.evaluate();
 
@@ -105,10 +93,22 @@ public class SpreadsheetTest
     public void getResults() throws Exception
     {
         WorkBook workBook = mock(WorkBook.class);
-        Spreadsheet spreadsheet = new Spreadsheet(workBook, mock(InputScanner.class));
+        Spreadsheet spreadsheet = new Spreadsheet(workBook);
 
         spreadsheet.getResults();
 
         verify(workBook, times(1)).printWorkbook(true);
+    }
+
+    /**
+     * Integration test
+     */
+    @Test
+    public void getInputScanner() throws Exception, FileNotFound
+    {
+        assertEquals(
+            InputScanner.class,
+            Spreadsheet.getInputScanner(mock(InputStream.class), new String[0]).getClass()
+        );
     }
 }

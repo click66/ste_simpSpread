@@ -1,4 +1,4 @@
-package simpSpread;
+package simpSpread.Exception;
 
 /**
  * Exception class for circular dependency

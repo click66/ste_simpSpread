@@ -1,5 +1,7 @@
 package simpSpread;
 
+import simpSpread.Exception.CannotRead;
+
 import java.util.Scanner;
 
 /**
@@ -17,14 +19,22 @@ public class InputScanner
         this.scanner = scanner;
     }
 
-    public int nextInt()
+    public int nextInt() throws CannotRead
     {
-        return scanner.nextInt();
+        try {
+            return scanner.nextInt();
+        } catch (Exception e) {
+            throw new CannotRead("Unable to read integer value");
+        }
     }
 
-    public String nextLine()
+    public String nextLine() throws CannotRead
     {
-        return scanner.nextLine();
+        try {
+            return scanner.nextLine();
+        } catch (Exception e) {
+            throw new CannotRead("Unable to capture input");
+        }
     }
 
     public void close()

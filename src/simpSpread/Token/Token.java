@@ -1,4 +1,4 @@
-package simpSpread;
+package simpSpread.Token;
 
 /**
  * Abstract token class

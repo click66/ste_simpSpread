@@ -1,4 +1,6 @@
-package simpSpread;
+package simpSpread.Token;
+
+import simpSpread.Utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,7 +10,8 @@ import java.util.regex.Pattern;
  *
  * @author A. Student
  */
-public class ReferenceToken extends Token {
+public class ReferenceToken extends Token
+{
 
 	public static final String refPatternRegex = "([a-zA-Z]+)(\\d+)";
 

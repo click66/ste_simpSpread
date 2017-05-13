@@ -1,7 +1,7 @@
 package simpSpread.Cell;
 
-import simpSpread.ReferenceToken;
-import simpSpread.Token;
+import simpSpread.Token.ReferenceToken;
+import simpSpread.Token.Token;
 import simpSpread.TokenFactory;
 
 import java.util.LinkedList;

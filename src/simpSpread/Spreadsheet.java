@@ -1,9 +1,15 @@
 package simpSpread;
 
+import simpSpread.Cell.Cell;
 import simpSpread.Cell.Provider;
+import simpSpread.Exception.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -24,36 +30,39 @@ public class Spreadsheet {
 
 	private final WorkBook workBook;
 	private boolean prettyPrint = false;
-	private InputScanner inputScanner;
 
-	public Spreadsheet(WorkBook workBook, InputScanner scanner) {
+	public Spreadsheet(WorkBook workBook) {
 		this.workBook = workBook;
-		this.inputScanner = scanner;
 	}
 
-	public Spreadsheet(WorkBook workBook, InputScanner scanner, boolean prettyPrint) {
+	public Spreadsheet(WorkBook workBook, boolean prettyPrint) {
 		this.workBook = workBook;
-		this.inputScanner = scanner;
 		this.prettyPrint = prettyPrint;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFound, InvalidArguments {
 		Spreadsheet spreadsheet = new Spreadsheet(
-				new WorkBook(new Provider(new InputScanner(new Scanner(System.in)))),
-				new InputScanner(new Scanner(System.in))
+				new WorkBook(new Provider(
+					getInputScanner(System.in, args),
+					new LinkedList<Cell>(),
+					new HashMap<Integer, HashSet<Cell>>()
+				)
+			)
 		);
+
 		if (args.length > 0) {
 			try {
-				if (!spreadsheet.simpleCommandLineParser(args)) {
-					LOGGER.severe("Error: Invalid number of arguments");
-					printUsage();
-					System.exit(STATUS_CODE_FAILURE);
-				}
+				spreadsheet.simpleCommandLineParser(args);
 			} catch (FileNotFoundException e) {
 				LOGGER.severe("Caught FileNotFoundException: Unable to find the specified input file");
 				System.exit(STATUS_CODE_FAILURE);
+			} catch (InvalidArguments e) {
+				LOGGER.severe("Error: Invalid number of arguments");
+				printUsage();
+				System.exit(STATUS_CODE_FAILURE);
 			}
 		}
+
 		spreadsheet.processWorkbook();
 		spreadsheet.evaluate();
 
@@ -81,38 +90,58 @@ public class Spreadsheet {
 				"SpreadsheetSolver expects to read inputs from stdin");
 	}
 
-	public void setInputScanner(InputScanner inputScanner) {
-		this.inputScanner = inputScanner;
-	}
-
 	public boolean isPrettyPrint() {
 		return prettyPrint;
 	}
 
-	public void processWorkbook() {
+	public void processWorkbook()
+	{
 		try {
-			workBook.readInput(inputScanner);
+			workBook.readInput();
 		} catch (RuntimeException re) {
 			LOGGER.severe(re.getMessage());
 			System.exit(STATUS_CODE_FAILURE);
-		} finally {
-			inputScanner.close();
+		} catch (simpSpread.Exception.Exception e) {
+			LOGGER.severe(e.getMessage());
+			System.exit(STATUS_CODE_FAILURE);
 		}
 	}
 
-	private boolean simpleCommandLineParser(String[] args) throws FileNotFoundException {
+	public static InputScanner getInputScanner(InputStream inputStream, String[] args) throws FileNotFound, InvalidArguments
+	{
+		InputScanner inputScanner = new InputScanner(new Scanner(inputStream));
+
+		int argsCount = args.length;
+		for (String arg : args) {
+			if (new File(arg).exists()) {
+				try {
+					inputScanner = new InputScanner(new Scanner(new File(arg)));
+				} catch (FileNotFoundException e) {
+					throw new FileNotFound("Supplied file input for spreadsheet data was not found");
+				}
+			}
+			argsCount--;
+		}
+
+		if (argsCount != 0) {
+			throw new InvalidArguments("Invalid number of arguments");
+		}
+
+		return inputScanner;
+	}
+
+	private void simpleCommandLineParser(String[] args) throws FileNotFoundException, InvalidArguments {
 		int argsCount = args.length;
 		for (String arg : args) {
 			if (arg.trim().equalsIgnoreCase(PRETTY_PRINT_ARG1) || arg.trim().equalsIgnoreCase
 					(PRETTY_PRINT_ARG2)) {
 				prettyPrint = true;
 				argsCount--;
-			} else if (new File(arg).exists()) {
-				setInputScanner(new InputScanner(new Scanner(new File(arg))));
-				argsCount--;
 			}
 		}
-		return argsCount == 0;
+		if (argsCount != 0) {
+			throw new InvalidArguments("Invalid number of arguments");
+		}
 	}
 
 	public void evaluate() {
@@ -126,6 +155,8 @@ public class Spreadsheet {
 			System.exit(STATUS_CODE_FAILURE);
 		} catch (CircularDependencyException cde) {
 			LOGGER.severe(cde.getMessage());
+		} catch (NoInputToEvaluate niee) {
+			LOGGER.severe(niee.getMessage());
 		}
 	}
 

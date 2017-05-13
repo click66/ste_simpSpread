@@ -1,7 +1,16 @@
 package simpSpread;
 
+import org.mockito.internal.matchers.Null;
 import simpSpread.Cell.Cell;
 import simpSpread.Cell.Provider;
+import simpSpread.Exception.CannotRead;
+import simpSpread.Exception.CircularDependencyException;
+import simpSpread.Exception.InvalidValue;
+import simpSpread.Exception.NoInputToEvaluate;
+import simpSpread.Token.OperatorToken;
+import simpSpread.Token.ReferenceToken;
+import simpSpread.Token.Token;
+import simpSpread.Token.ValueToken;
 
 import java.util.*;
 
@@ -14,13 +23,13 @@ import java.util.*;
 public class WorkBook {
 	private Provider cellProvider;
 
-	private final LinkedList<Cell> topologicalList;
-	private final HashMap<Integer, HashSet<Cell>> dependenciesMap;
+	private LinkedList<Cell> topologicalList;
+	private HashMap<Integer, HashSet<Cell>> dependenciesMap;
 	private int n; // number of columns (width)
 	private int m; // number of rows (height)
 	private Cell[][] cellMatrix;
 	private int unsolvedCells;
-	boolean circularDependent;
+	private boolean circularDependent = false;
 
 	public boolean isCircularDependent() {
 		return circularDependent;
@@ -32,54 +41,30 @@ public class WorkBook {
 
 	public WorkBook(Provider cellProvider) {
 		this.cellProvider = cellProvider;
-
-		topologicalList = new LinkedList<Cell>();
-		dependenciesMap = new HashMap<Integer, HashSet<Cell>>();
-		setCircularDependent(false);
 	}
 
-	public void readInput(InputScanner inputScanner) throws RuntimeException {
-
-		n = inputScanner.nextInt();
-		m = inputScanner.nextInt();
+	public void readInput() throws CannotRead, InvalidValue, RuntimeException {
+		n = cellProvider.getColumnCount();
+		m = cellProvider.getRowCount();
 		unsolvedCells = n * m;
-		inputScanner.nextLine();    // omit the newline
 
-		cellMatrix = new Cell[m][n];
-
-		for (int row = 0; row < m; row++) {
-			for (int col = 0; col < n; col++) {
-				String data = inputScanner.nextLine().trim().toUpperCase();
-				Cell curCell = cellMatrix[row][col] = new Cell(row, col, data);
-				if (curCell.getReferences().size() > 0) {
-					addToDependenciesMap(curCell);
-				} else {
-					topologicalList.add(curCell);
-				}
-			}
-		}
-	}
-
-	private void addToDependenciesMap(Cell curCell) {
-		LinkedList<ReferenceToken> curCellDeps = curCell.getReferences();
-		for (ReferenceToken tok : curCellDeps) {
-			HashSet<Cell> refBy;
-			if (dependenciesMap.containsKey(tok.hashCode())) {
-				refBy = dependenciesMap.get(tok.hashCode());
-			} else {
-				dependenciesMap.put(tok.hashCode(), refBy = new HashSet<Cell>());
-			}
-			refBy.add(curCell);
-		}
+		cellMatrix = cellProvider.getCellMatrix();
+		topologicalList = cellProvider.getTopologicalList();
+		dependenciesMap = cellProvider.getDependenciesMap();
 	}
 
 	/**
 	 * Function to evaluate the workbook cell by cell in topological order
 	 *
-	 * @throws CircularDependencyException: if workbook has cell which are circularly dependent on each other
+	 * @throws simpSpread.Exception.NoInputToEvaluate : if readInput() has not first been called
+	 * @throws CircularDependencyException : if workbook has cell which are circularly dependent on each other
 	 * @throws RuntimeException:            if parsing of token during evaluation fails
 	 */
-	public void evaluate() throws CircularDependencyException, RuntimeException {
+	public void evaluate() throws CircularDependencyException, NoInputToEvaluate, RuntimeException {
+		if (topologicalList == null || cellMatrix == null || dependenciesMap == null) {
+			throw new NoInputToEvaluate("No input has been read. Did you forget to call readInput() first?");
+		}
+
 		while (topologicalList.size() > 0) {
 			Cell curCell = topologicalList.removeFirst();
 			evaluate(curCell);
