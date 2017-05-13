@@ -1,5 +1,7 @@
 package simpSpread;
 
+import simpSpread.Cell.Provider;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -37,7 +39,7 @@ public class Spreadsheet {
 
 	public static void main(String[] args) {
 		Spreadsheet spreadsheet = new Spreadsheet(
-				new WorkBook(),
+				new WorkBook(new Provider(new InputScanner(new Scanner(System.in)))),
 				new InputScanner(new Scanner(System.in))
 		);
 		if (args.length > 0) {

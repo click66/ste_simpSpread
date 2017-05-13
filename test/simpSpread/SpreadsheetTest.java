@@ -91,7 +91,14 @@ public class SpreadsheetTest
     @Test
     public void evaluate() throws Exception
     {
+        WorkBook workBook = mock(WorkBook.class);
+        InputScanner scanner = mock(InputScanner.class);
 
+        Spreadsheet spreadsheet = new Spreadsheet(workBook, scanner);
+
+        spreadsheet.evaluate();
+
+        verify(workBook, times(1)).evaluate();
     }
 
     @Test

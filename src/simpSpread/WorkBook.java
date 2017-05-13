@@ -30,8 +30,8 @@ public class WorkBook {
 		this.circularDependent = circularDependent;
 	}
 
-	public WorkBook() {
-//		this.cellProvider = cellProvider;
+	public WorkBook(Provider cellProvider) {
+		this.cellProvider = cellProvider;
 
 		topologicalList = new LinkedList<Cell>();
 		dependenciesMap = new HashMap<Integer, HashSet<Cell>>();
