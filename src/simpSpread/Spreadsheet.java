@@ -22,15 +22,24 @@ public class Spreadsheet {
 
 	private final WorkBook workBook;
 	private boolean prettyPrint = false;
-	private Scanner inputScanner;
+	private InputScanner inputScanner;
 
-	public Spreadsheet() {
-		workBook = new WorkBook();
-		inputScanner = new Scanner(System.in);
+	public Spreadsheet(WorkBook workBook, InputScanner scanner) {
+		this.workBook = workBook;
+		this.inputScanner = scanner;
+	}
+
+	public Spreadsheet(WorkBook workBook, InputScanner scanner, boolean prettyPrint) {
+		this.workBook = workBook;
+		this.inputScanner = scanner;
+		this.prettyPrint = prettyPrint;
 	}
 
 	public static void main(String[] args) {
-		Spreadsheet spreadsheet = new Spreadsheet();
+		Spreadsheet spreadsheet = new Spreadsheet(
+				new WorkBook(),
+				new InputScanner(new Scanner(System.in))
+		);
 		if (args.length > 0) {
 			try {
 				if (!spreadsheet.simpleCommandLineParser(args)) {
@@ -70,7 +79,7 @@ public class Spreadsheet {
 				"SpreadsheetSolver expects to read inputs from stdin");
 	}
 
-	public void setInputScanner(Scanner inputScanner) {
+	public void setInputScanner(InputScanner inputScanner) {
 		this.inputScanner = inputScanner;
 	}
 
@@ -97,7 +106,7 @@ public class Spreadsheet {
 				prettyPrint = true;
 				argsCount--;
 			} else if (new File(arg).exists()) {
-				setInputScanner(new Scanner(new File(arg)));
+				setInputScanner(new InputScanner(new Scanner(new File(arg))));
 				argsCount--;
 			}
 		}

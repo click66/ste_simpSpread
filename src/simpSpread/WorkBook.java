@@ -1,5 +1,8 @@
 package simpSpread;
 
+import simpSpread.Cell.Cell;
+import simpSpread.Cell.Provider;
+
 import java.util.*;
 
 /**
@@ -9,6 +12,7 @@ import java.util.*;
  * @author A. Student
  */
 public class WorkBook {
+	private Provider cellProvider;
 
 	private final LinkedList<Cell> topologicalList;
 	private final HashMap<Integer, HashSet<Cell>> dependenciesMap;
@@ -27,12 +31,14 @@ public class WorkBook {
 	}
 
 	public WorkBook() {
+//		this.cellProvider = cellProvider;
+
 		topologicalList = new LinkedList<Cell>();
 		dependenciesMap = new HashMap<Integer, HashSet<Cell>>();
 		setCircularDependent(false);
 	}
 
-	public void readInput(Scanner inputScanner) throws RuntimeException {
+	public void readInput(InputScanner inputScanner) throws RuntimeException {
 
 		n = inputScanner.nextInt();
 		m = inputScanner.nextInt();

@@ -1,4 +1,8 @@
-package simpSpread;
+package simpSpread.Cell;
+
+import simpSpread.ReferenceToken;
+import simpSpread.Token;
+import simpSpread.TokenFactory;
 
 import java.util.LinkedList;
 import java.util.regex.Pattern;
