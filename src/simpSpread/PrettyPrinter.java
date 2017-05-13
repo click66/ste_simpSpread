@@ -1,6 +1,4 @@
-package simpSpread;
-
-/**
+package simpSpread; /**
  * Pretty printer for a table
  *
  * Credits: Source code taken from -  http://stackoverflow.com/a/11384393/2228512
