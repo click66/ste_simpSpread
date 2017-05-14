@@ -1,32 +1,37 @@
 package simpSpread;
 
 import org.junit.Test;
+import simpSpread.Cell.Cell;
 import simpSpread.Cell.Provider;
-import simpSpread.Exception.CircularDependencyException;
+import simpSpread.Evaluator.WorkBook;
 import simpSpread.Exception.Exception;
 import simpSpread.Exception.NoInputToEvaluate;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Created by clark on 13/05/2017.
+ * Tests for Workbook test
+ *
+ * @author C. Sirl
  */
 public class WorkBookTest
 {
     @Test
     public void testConstruct() throws Exception
     {
-        WorkBook workBook = new WorkBook(
-            mock(Provider.class)
-        );
+        simpSpread.WorkBook workBook = new simpSpread.WorkBook(mock(Provider.class), mock(simpSpread.Evaluator.WorkBook.class));
 
         assertNotNull(workBook);
     }
     @Test
     public void testCircularDependent() throws Exception
     {
-        WorkBook workBook = new WorkBook(mock(Provider.class));
+        simpSpread.WorkBook workBook = new simpSpread.WorkBook(mock(Provider.class), mock(simpSpread.Evaluator.WorkBook.class));
 
         assertFalse(workBook.isCircularDependent());
 
@@ -44,7 +49,7 @@ public class WorkBookTest
     {
         Provider provider = mock(Provider.class);
 
-        WorkBook workBook = new WorkBook(provider);
+        simpSpread.WorkBook workBook = new simpSpread.WorkBook(provider, mock(simpSpread.Evaluator.WorkBook.class));
 
         workBook.readInput();
 
@@ -63,23 +68,38 @@ public class WorkBookTest
     {
         Provider provider = mock(Provider.class);
 
-        WorkBook workBook = new WorkBook(provider);
+        simpSpread.WorkBook workBook = new simpSpread.WorkBook(provider, mock(simpSpread.Evaluator.WorkBook.class));
 
         workBook.evaluate();
     }
 
-    //@Test(expected= CircularDependencyException.class)
     @Test
-    public void evaluateCircularDependencyInjection() throws Exception
+    public void evaluate() throws Exception
     {
+        Cell[][] cellMatrix = new Cell[2][1];
+        HashMap<Integer, HashSet<Cell>> dependenciesMap = new HashMap<Integer, HashSet<Cell>>();
+        LinkedList<Cell> topologicalList = new LinkedList<Cell>();
+
         Provider provider = mock(Provider.class);
         when(provider.getColumnCount()).thenReturn(2);
-        when(provider.getRowCount()).thenReturn(2);
+        when(provider.getRowCount()).thenReturn(1);
+        when(provider.getCellMatrix()).thenReturn(cellMatrix);
+        when(provider.getTopologicalList()).thenReturn(topologicalList);
+        when(provider.getDependenciesMap()).thenReturn(dependenciesMap);
 
-        WorkBook workBook = new WorkBook(provider);
+        simpSpread.Evaluator.WorkBook evaluator =  mock(WorkBook.class);
+
+        simpSpread.WorkBook workBook = new simpSpread.WorkBook(provider, evaluator);
 
         workBook.readInput();
         workBook.evaluate();
+
+        verify(evaluator, times(1)).evaluate(
+            2,
+            cellMatrix,
+            dependenciesMap,
+            topologicalList
+        );
     }
 
     @Test
@@ -93,5 +113,4 @@ public class WorkBookTest
     {
 
     }
-
 }

@@ -11,7 +11,6 @@ import simpSpread.Token.ValueToken;
  * @author A. Student
  */
 public class TokenFactory {
-
 	public Token makeToken(String str) throws RuntimeException {
 		if (Operators.isValidOperator(str))
 			return new OperatorToken(Operators.get(str));

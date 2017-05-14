@@ -1,16 +1,11 @@
 package simpSpread;
 
-import org.mockito.internal.matchers.Null;
 import simpSpread.Cell.Cell;
 import simpSpread.Cell.Provider;
 import simpSpread.Exception.CannotRead;
 import simpSpread.Exception.CircularDependencyException;
 import simpSpread.Exception.InvalidValue;
 import simpSpread.Exception.NoInputToEvaluate;
-import simpSpread.Token.OperatorToken;
-import simpSpread.Token.ReferenceToken;
-import simpSpread.Token.Token;
-import simpSpread.Token.ValueToken;
 
 import java.util.*;
 
@@ -22,6 +17,7 @@ import java.util.*;
  */
 public class WorkBook {
 	private Provider cellProvider;
+	private simpSpread.Evaluator.WorkBook evaluator;
 
 	private LinkedList<Cell> topologicalList;
 	private HashMap<Integer, HashSet<Cell>> dependenciesMap;
@@ -39,8 +35,9 @@ public class WorkBook {
 		this.circularDependent = circularDependent;
 	}
 
-	public WorkBook(Provider cellProvider) {
+	public WorkBook(Provider cellProvider, simpSpread.Evaluator.WorkBook evaluator) {
 		this.cellProvider = cellProvider;
+		this.evaluator = evaluator;
 	}
 
 	public void readInput() throws CannotRead, InvalidValue, RuntimeException {
@@ -65,64 +62,7 @@ public class WorkBook {
 			throw new NoInputToEvaluate("No input has been read. Did you forget to call readInput() first?");
 		}
 
-		while (topologicalList.size() > 0) {
-			Cell curCell = topologicalList.removeFirst();
-			evaluate(curCell);
-			unsolvedCells--;
-			resolveDependencies(curCell);
-		}
-		if (unsolvedCells != 0) {
-			setCircularDependent(true);
-			throw new CircularDependencyException("CircularDependencyFound: Unable to solve the workbook");
-		}
-	}
-
-	private void resolveDependencies(Cell curCell) {
-		// get all the cells dependent on this cell
-		if (dependenciesMap.containsKey(curCell.hashCode())) {
-			HashSet<Cell> curCellDeps = dependenciesMap.get(curCell.hashCode());
-			if (curCellDeps.size() > 0) { // if there are cells dependent on this one
-				for (Cell depCell : curCellDeps) {
-					depCell.setUnresolvedRefs(depCell.getUnresolvedRefs() - 1);
-					if (depCell.getUnresolvedRefs() == 0) // if all references resolved then add to topological list
-						topologicalList.add(depCell);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Function to evaluate a cell
-	 *
-	 * @param curCell the cell to be evaluated
-	 * @return the evaluated value of the cell
-	 * @throws RuntimeException:         if invalid token is found while evaluating
-	 * @throws IllegalArgumentException: If the evaluation of operator is done on illegal argument like divide by 0
-	 */
-	private double evaluate(Cell curCell) throws RuntimeException {
-		if (curCell.isEvaluated())
-			return curCell.getEvaluatedValue();
-
-		Stack<Double> RPNStack = new Stack<Double>();
-		LinkedList<Token> curCellTokens = curCell.getTokenList();
-
-		for (Token tok : curCellTokens) {
-			if (tok.getClass().equals(ValueToken.class)) {
-				RPNStack.push(((ValueToken) tok).getParsedValue());
-			} else if (tok.getClass().equals(ReferenceToken.class)) {
-				ReferenceToken refTok = (ReferenceToken) tok;
-				Cell refCell = cellMatrix[refTok.getRefRow()][refTok.getRefCol()];
-				RPNStack.push(evaluate(refCell));
-			} else if (tok.getClass().equals(OperatorToken.class)) {
-				OperatorToken opTok = (OperatorToken) tok;
-				RPNStack = opTok.getParsedValue().apply(RPNStack);
-			} else {
-				throw new RuntimeException("Error: Invalid token: " + tok.toString());
-			}
-		}
-		curCell.setEvaluatedValue(RPNStack.pop());
-		curCell.setEvaluated(true);
-		return curCell.getEvaluatedValue();
+		evaluator.evaluate(n*m, cellMatrix, dependenciesMap, topologicalList);
 	}
 
 	public String printWorkbook(boolean results) {

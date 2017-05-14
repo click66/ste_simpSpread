@@ -75,8 +75,10 @@ public class Provider
      *
      * @return LinkedList<Cell>
      */
-    public LinkedList<Cell> getTopologicalList()
+    public LinkedList<Cell> getTopologicalList() throws CannotRead, InvalidValue
     {
+        read();
+
         return topologicalList;
     }
 
@@ -85,8 +87,10 @@ public class Provider
      *
      * @return HashMap<Integer, HashSet<Cell>>
      */
-    public HashMap<Integer, HashSet<Cell>> getDependenciesMap()
+    public HashMap<Integer, HashSet<Cell>> getDependenciesMap() throws CannotRead, InvalidValue
     {
+        read();
+
         return dependenciesMap;
     }
 
