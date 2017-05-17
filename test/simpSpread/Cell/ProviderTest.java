@@ -169,7 +169,6 @@ public class ProviderTest
         if (expectedLines > 0) {
             OngoingStubbing<String> lineReturns = when(inputScanner.nextLine());
 
-
             for (String line : restOfInput) {
                 lineReturns = lineReturns.thenReturn(line);
                 expectedLines--;
