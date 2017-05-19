@@ -144,6 +144,21 @@ public class ProviderTest
         assertEquals(HashMap.class, provider.getDependenciesMap().getClass());
     }
 
+    @Test
+    public void getDependenciesMapWithReferences() throws Exception
+    {
+        mockInput(2, 2,
+            "1",
+            "1",
+            "A1 B1 +",
+            "3"
+        );
+
+        Provider provider = constructTest();
+
+        assertEquals(2, provider.getDependenciesMap().size());
+    }
+
     private Provider constructTest()
     {
         return new Provider(
